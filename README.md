@@ -1,6 +1,6 @@
 # Hadieaty 🎁
 
-![Hadieaty Logo](assets/imgs/logo_full.png)
+<img src="assets/imgs/logo_full.png" alt="Hadieaty Logo" width="300" height="auto"/>
 
 ## A modern gift & event management app
 
