@@ -94,14 +94,6 @@ Hadieaty is a Flutter-powered mobile application that helps you organize gifts, 
 - Custom theme with vibrant orange gradient accents
 - Responsive design for various screen sizes
 
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Contact
-
-For questions or support, please reach out to [your-email@example.com](mailto:your-email@example.com)
-
 ---
 
 _Hadieaty - Making gift-giving a delightful experience_
