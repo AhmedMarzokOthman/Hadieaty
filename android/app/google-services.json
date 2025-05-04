@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "784150802180",
+    "project_id": "flutter-hadieaty-project",
+    "storage_bucket": "flutter-hadieaty-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784150802180:android:fe211039a78726d30e6a51",
+        "android_client_info": {
+          "package_name": "com.example.hadieaty"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB599tG4TARmK5XX0qKuIH4RvaJJL6uF50"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
