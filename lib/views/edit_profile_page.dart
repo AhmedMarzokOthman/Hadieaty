@@ -217,12 +217,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.check, color: Colors.white),
-            onPressed: _isLoading ? null : _saveProfile,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -391,9 +385,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveProfile,
+                  onPressed:
+                      _isProfilePictureLoading || _isLoading
+                          ? null
+                          : _saveProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFB6938),
+                    backgroundColor:
+                        _isProfilePictureLoading || _isLoading
+                            ? Colors.grey
+                            : Color(0xFFFB6938),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
@@ -401,7 +401,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                   ),
                   child: Text(
-                    'SAVE CHANGES',
+                    _isProfilePictureLoading
+                        ? 'UPLOADING PICTURE...'
+                        : 'SAVE CHANGES',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
