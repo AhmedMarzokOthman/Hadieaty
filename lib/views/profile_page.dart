@@ -140,7 +140,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => PledgedGiftsPage(),
+                                  builder:
+                                      (context) =>
+                                          PledgedGiftsPage(showAppBar: true),
                                 ),
                               );
                             },
@@ -375,7 +377,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 final user = await UserController().getUserFromLocal(
                   FirebaseAuth.instance.currentUser!.uid,
                 );
-                if (user != null) {
+                if (user != null && context.mounted) {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -396,9 +398,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     if (mounted) setState(() {});
                   }
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Could not load user profile')),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Could not load user profile')),
+                    );
+                  }
                 }
               }
               : onTap,

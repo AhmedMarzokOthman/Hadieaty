@@ -5,7 +5,8 @@ import 'package:hadieaty/models/wish_model.dart';
 import 'package:intl/intl.dart';
 
 class PledgedGiftsPage extends StatefulWidget {
-  const PledgedGiftsPage({super.key});
+  final bool showAppBar;
+  const PledgedGiftsPage({super.key, this.showAppBar = false});
 
   @override
   State<PledgedGiftsPage> createState() => _PledgedGiftsPageState();
@@ -23,6 +24,17 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar:
+          widget.showAppBar
+              ? AppBar(
+                title: Text('Pledged Gifts'),
+                backgroundColor: Colors.white,
+                leading: IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              )
+              : AppBar(toolbarHeight: 0),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _getPledgedGiftsWithDetails(),
         builder: (context, snapshot) {

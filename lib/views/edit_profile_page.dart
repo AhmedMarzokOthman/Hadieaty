@@ -72,17 +72,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _isProfilePictureLoading = false;
           _selectedImage = null;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload timed out. Please try again.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Upload timed out. Please try again.')),
+          );
+        }
       }
 
       return uploadSuccess;
     } catch (e) {
       log('Error picking image: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      }
       setState(() {
         _isProfilePictureLoading = false;
       });
@@ -120,9 +124,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
+      }
       setState(() {
         _selectedImage = null;
         _isProfilePictureLoading = false;
@@ -183,16 +189,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
         }
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Profile updated successfully')));
+      }
 
-      Navigator.pop(context, true); // Return true to indicate success
+      if (mounted) {
+        Navigator.pop(context, true); // Return true to indicate success
+      }
     } catch (e) {
       log('Error saving profile: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
+      }
       setState(() {
         _isLoading = false;
       });
@@ -308,6 +320,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Full Name',
+                  labelStyle: TextStyle(color: Colors.grey),
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
                   focusedBorder: OutlineInputBorder(
@@ -328,6 +341,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 controller: _usernameController,
                 decoration: InputDecoration(
                   labelText: 'Username',
+                  labelStyle: TextStyle(color: Colors.grey),
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.alternate_email),
                   suffixIcon:

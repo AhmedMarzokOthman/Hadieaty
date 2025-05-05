@@ -20,16 +20,20 @@ class SplashPage extends StatelessWidget {
         if (snapshot.data == true) {
           // User exists, go to Home
           Future.microtask(() {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomePage()),
-            );
+            if (context.mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            }
           });
         } else {
           // User does not exist, go to SignIn
           Future.microtask(() {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const SignInPage()),
-            );
+            if (context.mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const SignInPage()),
+              );
+            }
           });
         }
         // While navigating, show nothing

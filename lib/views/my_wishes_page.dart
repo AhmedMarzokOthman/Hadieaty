@@ -66,17 +66,21 @@ class _MyWishesPageState extends State<MyWishesPage> {
 
       setState(() {}); // Refresh UI
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Wish removed from your wishlist')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Wish removed from your wishlist')),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error removing wish: ${e.toString().substring(0, 50)}...',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error removing wish: ${e.toString().substring(0, 50)}...',
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -176,12 +180,16 @@ class _MyWishesPageState extends State<MyWishesPage> {
 
                 await wishBox.put(wish.id, updatedWish);
                 await WishController().editWish(updatedWish);
-                Navigator.pop(context);
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
                 setState(() {}); // Refresh UI
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Wish updated successfully')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Wish updated successfully')),
+                  );
+                }
               },
               child: Text('Save Changes'),
             ),

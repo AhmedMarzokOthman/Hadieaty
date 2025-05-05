@@ -52,13 +52,17 @@ class SignInPage extends StatelessWidget {
               onPressed: () async {
                 final value = await AuthController().signInWithGoogle();
                 if (value["statusCode"] == 200) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );
+                  if (context.mounted) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => HomePage()),
+                    );
+                  }
                 } else {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(value["data"])));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(value["data"])));
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(

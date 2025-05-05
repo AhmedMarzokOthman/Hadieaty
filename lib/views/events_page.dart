@@ -67,9 +67,11 @@ class _EventsPageState extends State<EventsPage> {
     await eventBox.delete(id);
     await EventController().deleteEvent(id);
     setState(() {}); // Refresh UI
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Event deleted successfully')));
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Event deleted successfully')));
+    }
   }
 
   void _showAddEditEventDialog([EventModel? existingEvent]) {
@@ -197,16 +199,20 @@ class _EventsPageState extends State<EventsPage> {
 
                     await eventBox.put(event.id, event);
                     await EventController().addEvent(event);
-                    Navigator.pop(context);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
                     setState(() {}); // Refresh UI
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Event ${existingEvent == null ? 'added' : 'updated'} successfully',
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Event ${existingEvent == null ? 'added' : 'updated'} successfully',
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                   child: Text(
                     existingEvent == null ? 'Add Event' : 'Save Changes',
@@ -245,7 +251,7 @@ class _EventsPageState extends State<EventsPage> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withAlpha(30),
                   blurRadius: 5,
                   offset: Offset(0, 2),
                 ),
@@ -382,15 +388,13 @@ class _EventsPageState extends State<EventsPage> {
                                         color:
                                             isSelected
                                                 ? statusColor
-                                                : statusColor.withOpacity(0.1),
+                                                : statusColor.withAlpha(30),
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                           color:
                                               isSelected
                                                   ? Colors.transparent
-                                                  : statusColor.withOpacity(
-                                                    0.5,
-                                                  ),
+                                                  : statusColor.withAlpha(30),
                                           width: 1,
                                         ),
                                       ),

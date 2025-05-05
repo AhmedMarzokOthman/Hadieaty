@@ -466,13 +466,17 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     final value = await AuthController().signOut();
                     if (value["statusCode"] == 200) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => SignInPage()),
-                      );
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => SignInPage()),
+                        );
+                      }
                     } else {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(value["data"])));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(value["data"])));
+                      }
                     }
                   },
                   child: ListTile(
