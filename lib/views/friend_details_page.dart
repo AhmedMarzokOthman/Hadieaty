@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
+import 'package:hadieaty/controllers/pledge_controller.dart';
+import 'package:hadieaty/controllers/wish_controller.dart';
 import 'package:hadieaty/models/event_model.dart';
 import 'package:hadieaty/models/user_model.dart';
 import 'package:hadieaty/models/wish_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/services/hive_service.dart';
 import 'package:intl/intl.dart';
 
 class FriendDetailsPage extends StatefulWidget {
@@ -42,13 +43,13 @@ class _FriendDetailsPageState extends State<FriendDetailsPage>
     }
 
     try {
-      final event = await HiveService.getEvent(eventId);
+      final event = await EventController().getEventFromLocal(eventId);
       if (event != null) {
         eventNamesCache[eventId] = event.name;
         return event.name;
       }
 
-      final events = await FirestoreService().getFriendEvents(
+      final events = await EventController().getFriendEvents(
         widget.friend!.uid,
       );
       final matchingEvent = events.firstWhere(
@@ -110,7 +111,7 @@ class _FriendDetailsPageState extends State<FriendDetailsPage>
 
   Widget _buildWishesTab() {
     return FutureBuilder<List<WishModel>>(
-      future: FirestoreService().getFriendWishes(widget.friend!.uid),
+      future: WishController().getFriendWishes(widget.friend!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -205,7 +206,7 @@ class _FriendDetailsPageState extends State<FriendDetailsPage>
                                 FirebaseAuth.instance.currentUser?.uid
                         ? TextButton(
                           onPressed: () async {
-                            await FirestoreService().unpledgeGift(
+                            await PledgeController().unpledgeGift(
                               widget.friend!.uid,
                               wish.id,
                             );
@@ -233,7 +234,7 @@ class _FriendDetailsPageState extends State<FriendDetailsPage>
                         : wish.pledgedBy == null
                         ? TextButton(
                           onPressed: () async {
-                            await FirestoreService().pledgeGift(
+                            await PledgeController().pledgeGift(
                               widget.friend!.uid,
                               wish,
                             );
@@ -272,7 +273,7 @@ class _FriendDetailsPageState extends State<FriendDetailsPage>
 
   Widget _buildEventsTab() {
     return FutureBuilder<List<EventModel>>(
-      future: FirestoreService().getFriendEvents(widget.friend?.uid ?? ""),
+      future: EventController().getFriendEvents(widget.friend?.uid ?? ""),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());

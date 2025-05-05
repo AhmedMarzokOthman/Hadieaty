@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/wish_controller.dart';
 import 'package:hadieaty/models/wish_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/widgets/wish_card.dart';
+import 'package:hadieaty/views/widgets/wish_card.dart';
 import 'package:hive_flutter/adapters.dart';
 
 class MyWishesPage extends StatefulWidget {
@@ -62,7 +62,7 @@ class _MyWishesPageState extends State<MyWishesPage> {
 
       // Delete from Hive and Firestore as usual
       await wishBox.delete(id);
-      await FirestoreService().deleteWish(id);
+      await WishController().deleteWish(id);
 
       setState(() {}); // Refresh UI
 
@@ -175,7 +175,7 @@ class _MyWishesPageState extends State<MyWishesPage> {
                 );
 
                 await wishBox.put(wish.id, updatedWish);
-                await FirestoreService().editWish(updatedWish);
+                await WishController().editWish(updatedWish);
                 Navigator.pop(context);
                 setState(() {}); // Refresh UI
 

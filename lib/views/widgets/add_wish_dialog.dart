@@ -3,13 +3,13 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
+import 'package:hadieaty/controllers/wish_controller.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import 'package:hadieaty/models/wish_model.dart';
 import 'package:hadieaty/models/event_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/services/hive_service.dart';
 
 class AddWishDialog extends StatefulWidget {
   final TextEditingController nameController;
@@ -45,7 +45,7 @@ class _AddWishDialogState extends State<AddWishDialog> {
   Future<void> _fetchEvents() async {
     try {
       // Use FirestoreService instead of directly accessing Hive
-      final events = await FirestoreService().getEvents();
+      final events = await EventController().getEvents();
 
       // Filter only upcoming and current events
       final now = DateTime.now();
@@ -302,8 +302,8 @@ class _AddWishDialogState extends State<AddWishDialog> {
 
                 try {
                   if (_imageUrl != null) {
-                    await HiveService.saveWish(wish);
-                    await FirestoreService().addWish(wish);
+                    await WishController().saveWishToLocal(wish);
+                    await WishController().addWish(wish);
                   }
                   Navigator.pop(context);
 

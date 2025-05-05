@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hadieaty/screens/home_page.dart';
-import 'package:hadieaty/screens/sign-in.page.dart';
-import 'package:hadieaty/services/hive_service.dart';
+import 'package:hadieaty/controllers/user_controller.dart';
+import 'package:hadieaty/views/home_page.dart';
+import 'package:hadieaty/views/sign-in.page.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
@@ -41,6 +41,6 @@ class SplashPage extends StatelessWidget {
   Future<bool> _checkUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
-    return await HiveService.userExists(user.uid);
+    return await UserController().userExistsInLocal(user.uid);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
 import 'package:hadieaty/models/event_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/widgets/event_card.dart';
+import 'package:hadieaty/views/widgets/event_card.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/intl.dart';
 
@@ -65,7 +65,7 @@ class _EventsPageState extends State<EventsPage> {
 
   void _deleteEvent(String id) async {
     await eventBox.delete(id);
-    await FirestoreService().deleteEvent(id);
+    await EventController().deleteEvent(id);
     setState(() {}); // Refresh UI
     ScaffoldMessenger.of(
       context,
@@ -196,7 +196,7 @@ class _EventsPageState extends State<EventsPage> {
                     );
 
                     await eventBox.put(event.id, event);
-                    await FirestoreService().addEvent(event);
+                    await EventController().addEvent(event);
                     Navigator.pop(context);
                     setState(() {}); // Refresh UI
 

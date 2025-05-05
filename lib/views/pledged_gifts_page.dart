@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/pledge_controller.dart';
 import 'package:hadieaty/models/wish_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
 import 'package:intl/intl.dart';
 
 class PledgedGiftsPage extends StatefulWidget {
@@ -12,10 +12,10 @@ class PledgedGiftsPage extends StatefulWidget {
 }
 
 class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
-  final FirestoreService _firestoreService = FirestoreService();
+  final PledgeController _pledgeController = PledgeController();
 
   Future<void> _unpledgeGift(String friendUid, String giftId) async {
-    await _firestoreService.unpledgeGift(friendUid, giftId);
+    await _pledgeController.unpledgeGift(friendUid, giftId);
     setState(() {});
   }
 
@@ -193,7 +193,7 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
       final snapshot =
           await FirebaseFirestore.instance
               .collection("Store Data")
-              .doc(_firestoreService.uid)
+              .doc(PledgeController().uid)
               .collection("myPledgedGifts")
               .get();
 

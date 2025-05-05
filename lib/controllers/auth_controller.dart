@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
+import 'package:hadieaty/controllers/user_controller.dart';
+import 'package:hadieaty/controllers/wish_controller.dart';
 import 'package:hadieaty/models/user_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/services/hive_service.dart';
 
-class AuthService {
+class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String createUsername(String name) {
@@ -55,24 +56,24 @@ class AuthService {
         profilePicture: user.user!.photoURL!,
       );
 
-      final userExistsRes = await FirestoreService().userExists();
+      final userExistsRes = await UserController().userExists();
       if (userExistsRes["exists"] == false) {
-        await HiveService.saveUser(userData);
-        await FirestoreService().addUser(userData);
+        await UserController().saveUserToLocal(userData);
+        await UserController().addUser(userData);
       } else {
         final user = UserModel.fromJson(userExistsRes["data"]);
-        final wishes = await FirestoreService().getWishes();
-        final events = await FirestoreService().getEvents();
-        final friends = await FirestoreService().getFriends();
-        await HiveService.saveUser(user);
+        final wishes = await WishController().getWishes();
+        final events = await EventController().getEvents();
+        final friends = await UserController().getFriends();
+        await UserController().saveUserToLocal(user);
         for (var wish in wishes) {
-          await HiveService.saveWish(wish);
+          await WishController().saveWishToLocal(wish);
         }
         for (var event in events) {
-          await HiveService.saveEvent(event);
+          await EventController().saveEventToLocal(event);
         }
         for (var friend in friends) {
-          await HiveService.saveFriend(friend);
+          await UserController().saveFriendToLocal(friend);
         }
       }
 
@@ -92,10 +93,10 @@ class AuthService {
 
       // Clean up local storage
       if (uid != null) {
-        await HiveService.deleteUser(uid);
-        await HiveService.deleteAllWishes();
-        await HiveService.deleteAllEvents();
-        await HiveService.deleteAllFriends();
+        await UserController().deleteUserFromLocal(uid);
+        await WishController().deleteAllWishesFromLocal();
+        await EventController().deleteAllEventsFromLocal();
+        await UserController().deleteAllFriendsFromLocal();
       }
 
       return {"data": "Signed out successfully", "statusCode": 200};

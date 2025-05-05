@@ -1,14 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hadieaty/firebase_options.dart';
-import 'package:hadieaty/screens/events_page.dart';
-import 'package:hadieaty/screens/friend_details_page.dart';
-import 'package:hadieaty/screens/home_page.dart';
-import 'package:hadieaty/screens/pledged_gifts_page.dart';
-import 'package:hadieaty/screens/profile_page.dart';
-import 'package:hadieaty/screens/sign-in.page.dart';
-import 'package:hadieaty/screens/splash_page.dart';
-import 'package:hadieaty/screens/my_wishes_page.dart';
+import 'package:hadieaty/views/events_page.dart';
+import 'package:hadieaty/views/friend_details_page.dart';
+import 'package:hadieaty/views/home_page.dart';
+import 'package:hadieaty/views/pledged_gifts_page.dart';
+import 'package:hadieaty/views/profile_page.dart';
+import 'package:hadieaty/views/sign-in.page.dart';
+import 'package:hadieaty/views/splash_page.dart';
+import 'package:hadieaty/views/my_wishes_page.dart';
 import 'package:hadieaty/services/hive_service.dart';
 import 'package:hadieaty/utils/app_routes.dart';
 

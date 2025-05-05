@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
+import 'package:hadieaty/controllers/user_controller.dart';
+import 'package:hadieaty/controllers/wish_controller.dart';
 import 'package:hadieaty/models/event_model.dart';
 import 'package:hadieaty/models/wish_model.dart';
-import 'package:hadieaty/screens/edit_profile_page.dart';
-import 'package:hadieaty/screens/pledged_gifts_page.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/services/hive_service.dart';
+import 'package:hadieaty/views/edit_profile_page.dart';
+import 'package:hadieaty/views/pledged_gifts_page.dart';
 import 'package:intl/intl.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -27,7 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return FutureBuilder(
       // Add _refreshToggle to force refresh when needed
-      future: HiveService.getUser(uid),
+      future: UserController().getUserFromLocal(uid),
       key: ValueKey(
         _refreshToggle,
       ), // This forces rebuild when _refreshToggle changes
@@ -315,7 +316,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           child: FutureBuilder<List<EventModel>>(
-            future: FirestoreService().getEvents(),
+            future: EventController().getEvents(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Padding(
@@ -488,7 +489,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<List<WishModel>> _getWishesByEvent(String eventId) async {
     // Get all user wishes
-    final wishes = await FirestoreService().getWishes();
+    final wishes = await WishController().getWishes();
 
     // Filter wishes that are associated with this event
     return wishes.where((wish) => wish.associatedEvent == eventId).toList();
@@ -538,7 +539,7 @@ class _ProfilePageState extends State<ProfilePage> {
       onTap:
           title == "Edit Profile"
               ? () async {
-                final user = await HiveService.getUser(
+                final user = await UserController().getUserFromLocal(
                   FirebaseAuth.instance.currentUser!.uid,
                 );
                 if (user != null) {

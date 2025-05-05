@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
 import 'package:hadieaty/models/user_model.dart';
-import 'package:hadieaty/screens/friend_details_page.dart';
-import 'package:hadieaty/services/firestore_service.dart';
+import 'package:hadieaty/views/friend_details_page.dart';
 
 class FriendWidget extends StatelessWidget {
   final UserModel friend;
@@ -98,7 +98,7 @@ class FriendWidget extends StatelessWidget {
   }
 
   Future<int> _getUpcomingEventsCount(String friendUid) async {
-    final allEvents = await FirestoreService().getFriendEvents(friendUid);
+    final allEvents = await EventController().getFriendEvents(friendUid);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 

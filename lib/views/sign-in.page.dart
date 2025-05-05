@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hadieaty/screens/home_page.dart';
-import 'package:hadieaty/services/auth_service.dart';
+import 'package:hadieaty/views/home_page.dart';
+import 'package:hadieaty/controllers/auth_controller.dart';
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -50,7 +50,7 @@ class SignInPage extends StatelessWidget {
             padding: EdgeInsets.only(left: 50, right: 50, top: 20),
             child: ElevatedButton(
               onPressed: () async {
-                final value = await AuthService().signInWithGoogle();
+                final value = await AuthController().signInWithGoogle();
                 if (value["statusCode"] == 200) {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => HomePage()),

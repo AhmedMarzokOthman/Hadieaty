@@ -1,18 +1,18 @@
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/event_controller.dart';
+import 'package:hadieaty/controllers/user_controller.dart';
 import 'package:hadieaty/models/event_model.dart';
 import 'package:hadieaty/models/user_model.dart';
-import 'package:hadieaty/screens/events_page.dart';
-import 'package:hadieaty/screens/my_wishes_page.dart';
-import 'package:hadieaty/screens/pledged_gifts_page.dart';
-import 'package:hadieaty/screens/profile_page.dart';
-import 'package:hadieaty/screens/sign-in.page.dart';
-import 'package:hadieaty/services/auth_service.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/services/hive_service.dart';
-import 'package:hadieaty/widgets/add_wish_dialog.dart';
-import 'package:hadieaty/widgets/friend_widget.dart';
+import 'package:hadieaty/views/events_page.dart';
+import 'package:hadieaty/views/my_wishes_page.dart';
+import 'package:hadieaty/views/pledged_gifts_page.dart';
+import 'package:hadieaty/views/profile_page.dart';
+import 'package:hadieaty/views/sign-in.page.dart';
+import 'package:hadieaty/controllers/auth_controller.dart';
+import 'package:hadieaty/views/widgets/add_wish_dialog.dart';
+import 'package:hadieaty/views/widgets/friend_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:animations/animations.dart';
 import 'package:intl/intl.dart';
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    _userFuture = HiveService.getUser(uid);
+    _userFuture = UserController().getUserFromLocal(uid);
     _pages = _getDefaultPages(); // Set default pages first
     _openFriendBox();
   }
@@ -53,9 +53,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadFriends() async {
     try {
       // Get friends from Firestore and save to Hive
-      final friends = await FirestoreService().getFriends();
+      final friends = await UserController().getFriends();
       for (var friend in friends) {
-        await HiveService.saveFriend(friend);
+        await UserController().saveFriendToLocal(friend);
       }
       // Initialize pages after loading friends
       _initializePages();
@@ -468,7 +468,7 @@ class _HomePageState extends State<HomePage> {
                     backgroundColor: Colors.white,
                   ),
                   onPressed: () async {
-                    final value = await AuthService().signOut();
+                    final value = await AuthController().signOut();
                     if (value["statusCode"] == 200) {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(builder: (context) => SignInPage()),
@@ -646,7 +646,7 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 try {
-                  final friend = await FirestoreService().getUserByUsername(
+                  final friend = await UserController().getUserByUsername(
                     usernameController.text.trim(),
                   );
 
@@ -658,7 +658,7 @@ class _HomePageState extends State<HomePage> {
 
                     // Close dialog and show success message
                     Navigator.pop(context);
-                    await FirestoreService().addFriend(friend.username);
+                    await UserController().addFriend(friend.username);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Friend request sent to ${friend.name}'),
@@ -814,7 +814,7 @@ class _HomePageState extends State<HomePage> {
                         'eventBox',
                       );
                       await eventBox.put(event.id, event);
-                      await FirestoreService().addEvent(event);
+                      await EventController().addEvent(event);
                       Navigator.pop(context);
 
                       // Show success message

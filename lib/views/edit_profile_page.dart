@@ -2,16 +2,15 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hadieaty/controllers/user_controller.dart';
 import 'package:hadieaty/models/user_model.dart';
-import 'package:hadieaty/services/firestore_service.dart';
-import 'package:hadieaty/services/hive_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
 class EditProfilePage extends StatefulWidget {
   final UserModel user;
 
-  const EditProfilePage({Key? key, required this.user}) : super(key: key);
+  const EditProfilePage({super.key, required this.user});
 
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
@@ -26,7 +25,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   String? _imageUrl;
   bool _hasChangedUsername = false;
   bool _usernameAvailable = true;
-  final FirestoreService _firestoreService = FirestoreService();
+  final UserController _userController = UserController();
 
   @override
   void initState() {
@@ -121,7 +120,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     try {
-      final user = await _firestoreService.getUserByUsername(username);
+      final user = await _userController.getUserByUsername(username);
       setState(() {
         _usernameAvailable = user == null;
       });
@@ -150,16 +149,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
       log('Updating user profile: ${updatedUser.toJson()}');
 
       // First update in Hive local storage
-      await HiveService.saveUser(updatedUser);
+      await _userController.saveUserToLocal(updatedUser);
 
       // Then update in Firestore
-      await _firestoreService.updateUserProfile(updatedUser);
+      await _userController.updateUserProfile(updatedUser);
 
       // Update in friends collections
-      final friends = await _firestoreService.getFriends();
+      final friends = await _userController.getFriends();
       for (final friend in friends) {
         try {
-          await _firestoreService.updateFriendReference(
+          await _userController.updateFriendReference(
             friend.uid,
             updatedUser,
           );
