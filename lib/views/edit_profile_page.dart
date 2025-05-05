@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hadieaty/controllers/user_controller.dart';
 import 'package:hadieaty/models/user_model.dart';
@@ -26,6 +27,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool _hasChangedUsername = false;
   bool _usernameAvailable = true;
   final UserController _userController = UserController();
+  bool _isProfilePictureLoading = false;
 
   @override
   void initState() {
@@ -52,18 +54,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       setState(() {
         _selectedImage = File(returnedImage.path);
-        _isLoading = true;
+        _isProfilePictureLoading = true;
       });
 
-      await _uploadImageToCloudinary();
-      return true;
+      // Add timeout handling
+      bool uploadSuccess = false;
+      try {
+        await _uploadImageToCloudinary().timeout(
+          Duration(seconds: 30),
+          onTimeout: () {
+            throw TimeoutException('Image upload timed out');
+          },
+        );
+        uploadSuccess = true;
+      } catch (e) {
+        setState(() {
+          _isProfilePictureLoading = false;
+          _selectedImage = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload timed out. Please try again.')),
+        );
+      }
+
+      return uploadSuccess;
     } catch (e) {
       log('Error picking image: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
       setState(() {
-        _isLoading = false;
+        _isProfilePictureLoading = false;
       });
       return false;
     }
@@ -91,22 +112,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
         setState(() {
           _imageUrl = jsonMap["url"];
-          _isLoading = false;
+          _isProfilePictureLoading = false;
         });
-
-        log('Image uploaded successfully: $_imageUrl');
       } else {
         throw Exception(
           'Failed to upload image. Status code: ${response.statusCode}',
         );
       }
     } catch (e) {
-      log('Error uploading image: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
       setState(() {
-        _isLoading = false;
+        _selectedImage = null;
+        _isProfilePictureLoading = false;
       });
     }
   }
@@ -146,7 +165,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         profilePicture: _imageUrl,
       );
 
-      log('Updating user profile: ${updatedUser.toJson()}');
+      // log('Updating user profile: ${updatedUser.toJson()}');
 
       // First update in Hive local storage
       await _userController.saveUserToLocal(updatedUser);
@@ -158,10 +177,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final friends = await _userController.getFriends();
       for (final friend in friends) {
         try {
-          await _userController.updateFriendReference(
-            friend.uid,
-            updatedUser,
-          );
+          await _userController.updateFriendReference(friend.uid, updatedUser);
         } catch (e) {
           log('Error updating friend reference: $e');
         }
@@ -208,208 +224,192 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ],
       ),
-      body:
-          _isLoading
-              ? Center(
-                child: CircularProgressIndicator(color: Color(0xFFFB6938)),
-              )
-              : SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      // Profile Picture
-                      Center(
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Color(0xFFFB6938),
-                                  width: 2,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(100),
-                                child:
-                                    _selectedImage != null
-                                        ? Image.file(
-                                          _selectedImage!,
-                                          width: 120,
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                        )
-                                        : _imageUrl != null &&
-                                            _imageUrl!.isNotEmpty
-                                        ? Image.network(
-                                          _imageUrl!,
-                                          width: 120,
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (
-                                            context,
-                                            error,
-                                            stackTrace,
-                                          ) {
-                                            log(
-                                              'Error loading profile image: $error',
-                                            );
-                                            return Container(
-                                              color: Colors.grey[300],
-                                              child: Icon(
-                                                Icons.person,
-                                                size: 60,
-                                                color: Colors.grey[600],
-                                              ),
-                                            );
-                                          },
-                                        )
-                                        : Container(
-                                          color: Colors.grey[300],
-                                          child: Icon(
-                                            Icons.person,
-                                            size: 60,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: _pickImageFromGallery,
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Profile Picture
+              Center(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Color(0xFFFB6938), width: 2),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child:
+                            _isProfilePictureLoading
+                                ? Center(
+                                  child: CircularProgressIndicator(
                                     color: Color(0xFFFB6938),
-                                    shape: BoxShape.circle,
                                   ),
+                                )
+                                : _selectedImage != null
+                                ? Image.file(
+                                  _selectedImage!,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                )
+                                : _imageUrl != null && _imageUrl!.isNotEmpty
+                                ? Image.network(
+                                  _imageUrl!,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    log('Error loading profile image: $error');
+                                    return Container(
+                                      color: Colors.grey[300],
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: Colors.grey[600],
+                                      ),
+                                    );
+                                  },
+                                )
+                                : Container(
+                                  color: Colors.grey[300],
                                   child: Icon(
-                                    Icons.camera_alt,
-                                    color: Colors.white,
-                                    size: 20,
+                                    Icons.person,
+                                    size: 60,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
-                      SizedBox(height: 30),
-
-                      // Name Field
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: 'Full Name',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFFFB6938)),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _pickImageFromGallery,
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFFB6938),
+                            shape: BoxShape.circle,
                           ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your name';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
-
-                      // Username Field
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: InputDecoration(
-                          labelText: 'Username',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.alternate_email),
-                          suffixIcon:
-                              _usernameController.text != widget.user.username
-                                  ? _usernameAvailable
-                                      ? Icon(
-                                        Icons.check_circle,
-                                        color: Colors.green,
-                                      )
-                                      : Icon(Icons.error, color: Colors.red)
-                                  : null,
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFFFB6938)),
-                          ),
-                          helperText:
-                              _usernameController.text !=
-                                          widget.user.username &&
-                                      !_usernameAvailable
-                                  ? 'Username already taken'
-                                  : null,
-                          helperStyle: TextStyle(color: Colors.red),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _hasChangedUsername = value != widget.user.username;
-                          });
-                          _checkUsernameAvailability(value);
-                        },
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a username';
-                          }
-                          if (!_usernameAvailable) {
-                            return 'Username is already taken';
-                          }
-                          if (value.contains(' ')) {
-                            return 'Username cannot contain spaces';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
-
-                      // Email Field (disabled)
-                      TextFormField(
-                        initialValue: widget.user.email,
-                        enabled: false,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email),
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                        ),
-                      ),
-                      SizedBox(height: 30),
-
-                      // Save Button
-                      Container(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _saveProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFFB6938),
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            'SAVE CHANGES',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 30),
+
+              // Name Field
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Full Name',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+
+              // Username Field
+              TextFormField(
+                controller: _usernameController,
+                decoration: InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.alternate_email),
+                  suffixIcon:
+                      _usernameController.text != widget.user.username
+                          ? _usernameAvailable
+                              ? Icon(Icons.check_circle, color: Colors.green)
+                              : Icon(Icons.error, color: Colors.red)
+                          : null,
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                  ),
+                  helperText:
+                      _usernameController.text != widget.user.username &&
+                              !_usernameAvailable
+                          ? 'Username already taken'
+                          : null,
+                  helperStyle: TextStyle(color: Colors.red),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _hasChangedUsername = value != widget.user.username;
+                  });
+                  _checkUsernameAvailability(value);
+                },
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a username';
+                  }
+                  if (!_usernameAvailable) {
+                    return 'Username is already taken';
+                  }
+                  if (value.contains(' ')) {
+                    return 'Username cannot contain spaces';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+
+              // Email Field (disabled)
+              TextFormField(
+                initialValue: widget.user.email,
+                enabled: false,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                ),
+              ),
+              SizedBox(height: 30),
+
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFFB6938),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'SAVE CHANGES',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -17,17 +17,6 @@ class FriendWidget extends StatelessWidget {
             builder: (context) => FriendDetailsPage(friend: friend),
           ),
         );
-        // showDialog(
-        //   context: context,
-        //   builder:
-        //       (context) => AlertDialog(
-        //         title: Text("Friend"),
-        //         content: SizedBox(
-        //           width: MediaQuery.of(context).size.width * 0.8,
-        //           child: Text("Friend"),
-        //         ),
-        //       ),
-        // );
       },
       child: Container(
         margin: EdgeInsets.all(10),

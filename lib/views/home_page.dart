@@ -1,9 +1,7 @@
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hadieaty/controllers/event_controller.dart';
 import 'package:hadieaty/controllers/user_controller.dart';
-import 'package:hadieaty/models/event_model.dart';
 import 'package:hadieaty/models/user_model.dart';
 import 'package:hadieaty/views/events_page.dart';
 import 'package:hadieaty/views/my_wishes_page.dart';
@@ -11,11 +9,12 @@ import 'package:hadieaty/views/pledged_gifts_page.dart';
 import 'package:hadieaty/views/profile_page.dart';
 import 'package:hadieaty/views/sign-in.page.dart';
 import 'package:hadieaty/controllers/auth_controller.dart';
+import 'package:hadieaty/views/widgets/add_friend_dialog.dart';
 import 'package:hadieaty/views/widgets/add_wish_dialog.dart';
+import 'package:hadieaty/views/widgets/event_dialog.dart';
 import 'package:hadieaty/views/widgets/friend_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:animations/animations.dart';
-import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -52,19 +51,16 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadFriends() async {
     try {
-      // Get friends from Firestore and save to Hive
       final friends = await UserController().getFriends();
       for (var friend in friends) {
         await UserController().saveFriendToLocal(friend);
       }
-      // Initialize pages after loading friends
       _initializePages();
       setState(() {
         _initialized = true;
-      }); // Refresh UI
+      });
     } catch (e) {
       // print('Error loading friends: $e');
-      // Still initialize pages even if loading fails
       _initializePages();
       setState(() {
         _initialized = true;
@@ -514,7 +510,7 @@ class _HomePageState extends State<HomePage> {
                 activeIndex = index;
               });
             },
-            // padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+            // padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
             // cornerRadius: const BorderRadius.only(
             //   topLeft: Radius.circular(8),
             //   topRight: Radius.circular(8),
@@ -592,261 +588,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showAddFriendDialog(BuildContext context) {
-    final TextEditingController usernameController = TextEditingController();
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text('Add Friend'),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: usernameController,
-                    decoration: InputDecoration(
-                      labelText: 'Friend Username',
-                      border: OutlineInputBorder(),
-                      labelStyle: TextStyle(color: Colors.grey),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFFB6938)),
-                      ),
-                    ),
-                    cursorColor: Color(0xFFFB6938),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                setState(() {
-                  usernameController.clear();
-                });
-              },
-              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFB6938),
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                if (usernameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please enter a username')),
-                  );
-                  return;
-                }
-
-                try {
-                  final friend = await UserController().getUserByUsername(
-                    usernameController.text.trim(),
-                  );
-
-                  if (friend != null) {
-                    // Add friend logic here
-                    print(
-                      '\x1B[32mFound user: ${friend.name} (${friend.username})\x1B[0m',
-                    );
-
-                    // Close dialog and show success message
-                    Navigator.pop(context);
-                    await UserController().addFriend(friend.username);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Friend request sent to ${friend.name}'),
-                        duration: Duration(seconds: 1),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
-                    // User not found
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('User not found'),
-                        duration: Duration(seconds: 1),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  // Handle error
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: ${e.toString()}'),
-                      duration: Duration(seconds: 1),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: Text('Add Friend'),
-            ),
-          ],
-        );
+        return AddFriendDialog();
       },
     );
   }
 
   void _showAddEventDialog(BuildContext context) {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController typeController = TextEditingController();
-    DateTime selectedDate = DateTime.now();
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text('Add New Event'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Event Name',
-                        border: OutlineInputBorder(),
-                        labelStyle: TextStyle(color: Colors.grey),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFFB6938)),
-                        ),
-                      ),
-                      cursorColor: Color(0xFFFB6938),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: typeController,
-                      decoration: InputDecoration(
-                        labelText: 'Event Type',
-                        border: OutlineInputBorder(),
-                        labelStyle: TextStyle(color: Colors.grey),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFFB6938)),
-                        ),
-                        hintText: 'e.g. Birthday, Graduation, Anniversary',
-                      ),
-                      cursorColor: Color(0xFFFB6938),
-                    ),
-                    SizedBox(height: 16),
-                    // Date picker row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Date: ${DateFormat('MM/dd/yyyy').format(selectedDate)}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2101),
-                              builder: (context, child) {
-                                return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: ColorScheme.light(
-                                      primary: Color(0xFFFB6938),
-                                    ),
-                                  ),
-                                  child: child!,
-                                );
-                              },
-                            );
-
-                            if (picked != null && picked != selectedDate) {
-                              setDialogState(() {
-                                selectedDate = picked;
-                              });
-                            }
-                          },
-                          child: Text(
-                            'Select Date',
-                            style: TextStyle(color: Color(0xFFFB6938)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel', style: TextStyle(color: Colors.grey)),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFB6938),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () async {
-                    // Validate inputs
-                    if (nameController.text.isEmpty ||
-                        typeController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Please `fill all fields')),
-                      );
-                      return;
-                    }
-
-                    final event = EventModel(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: nameController.text,
-                      type: typeController.text,
-                      date: selectedDate,
-                    );
-
-                    try {
-                      final eventBox = await Hive.openBox<EventModel>(
-                        'eventBox',
-                      );
-                      await eventBox.put(event.id, event);
-                      await EventController().addEvent(event);
-                      Navigator.pop(context);
-
-                      // Show success message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Event added successfully!')),
-                      );
-
-                      // If currently on the events page, refresh it
-                      if (activeIndex == 1) {
-                        setState(() {
-                          activeIndex = 0;
-                        });
-                        Future.delayed(Duration(milliseconds: 100), () {
-                          setState(() {
-                            activeIndex = 1;
-                          });
-                        });
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error saving event: ${e.toString()}'),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text('Add Event'),
-                ),
-              ],
-            );
-          },
-        );
+        return EventDialog(activeIndex: activeIndex);
       },
     );
   }

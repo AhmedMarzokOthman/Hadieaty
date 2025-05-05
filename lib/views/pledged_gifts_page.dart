@@ -125,7 +125,7 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFFB6938).withOpacity(0.1),
+                                    color: Color(0xFFFB6938).withAlpha(30),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -224,7 +224,7 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
 
       return result;
     } catch (e) {
-      print('Error fetching pledged gifts: $e');
+      // print('Error fetching pledged gifts: $e');
       return [];
     }
   }

@@ -30,7 +30,7 @@ class _MyWishesPageState extends State<MyWishesPage> {
       });
     } catch (e) {
       // Handle Hive error - this might happen if the model schema changed
-      print('Error opening wishBox: $e');
+      // print('Error opening wishBox: $e');
       // Clear the box data if there's a format error
       await Hive.deleteBoxFromDisk('wishBox');
       wishBox = await Hive.openBox<WishModel>('wishBox');
