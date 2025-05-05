@@ -185,13 +185,15 @@ class _FriendDetailsPageState extends State<FriendDetailsPage>
                                 color: Colors.blue[700],
                               ),
                               SizedBox(width: 4),
-                              Text(
-                                'For: ${snapshot.data ?? 'Loading...'}',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: TextStyle(
-                                  color: Colors.blue[700],
-                                  fontSize: 12,
+                              Expanded(
+                                child: Text(
+                                  'For: ${snapshot.data ?? 'Loading...'}',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: Colors.blue[700],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ],
