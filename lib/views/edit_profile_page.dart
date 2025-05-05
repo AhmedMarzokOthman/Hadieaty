@@ -1,12 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hadieaty/controllers/user_controller.dart';
 import 'package:hadieaty/models/user_model.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
   final UserModel user;
