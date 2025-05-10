@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/controllers/user_controller.dart';
 
 class AddFriendDialog extends StatefulWidget {
@@ -29,10 +30,10 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                   border: OutlineInputBorder(),
                   labelStyle: TextStyle(color: Colors.grey),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                    borderSide: BorderSide(color: primaryColor),
                   ),
                 ),
-                cursorColor: Color(0xFFFB6938),
+                cursorColor: primaryColor,
               ),
             ],
           ),
@@ -50,7 +51,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFFB6938),
+            backgroundColor: primaryColor,
             foregroundColor: Colors.white,
           ),
           onPressed: () async {

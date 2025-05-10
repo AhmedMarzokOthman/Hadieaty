@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/models/event_model.dart';
 import 'package:hadieaty/models/wish_model.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -78,7 +79,7 @@ class _WishCardState extends State<WishCard> {
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
                       'For event: ${associatedEvent!.name} (${associatedEvent!.type})',
-                      style: TextStyle(color: Color(0xFFFB6938)),
+                      style: TextStyle(color: primaryColor),
                     ),
                   ),
               ],
@@ -93,7 +94,7 @@ class _WishCardState extends State<WishCard> {
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Color(0xFFFB6938),
+                      color: primaryColor,
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text('Edit', style: TextStyle(color: Colors.white)),
@@ -189,7 +190,7 @@ class _WishCardState extends State<WishCard> {
                           '\$${widget.wish.price}',
                           maxLines: 1,
                           style: TextStyle(
-                            color: Color(0xFFFB6938),
+                            color: primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -224,27 +225,23 @@ class _WishCardState extends State<WishCard> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Color(0xFFFB6938).withOpacity(0.1),
+                          color: primaryColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: Color(0xFFFB6938).withOpacity(0.3),
+                            color: primaryColor.withOpacity(0.3),
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.event,
-                              size: 12,
-                              color: Color(0xFFFB6938),
-                            ),
+                            Icon(Icons.event, size: 12, color: primaryColor),
                             SizedBox(width: 4),
                             Flexible(
                               child: Text(
                                 associatedEvent!.name,
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFFFB6938),
+                                  color: primaryColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 maxLines: 1,

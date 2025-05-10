@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/controllers/wish_controller.dart';
 import 'package:hadieaty/models/wish_model.dart';
 import 'package:hadieaty/views/widgets/wish_card.dart';
@@ -124,10 +125,10 @@ class _MyWishesPageState extends State<MyWishesPage> {
                       border: OutlineInputBorder(),
                       labelStyle: TextStyle(color: Colors.grey),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFFB6938)),
+                        borderSide: BorderSide(color: primaryColor),
                       ),
                     ),
-                    cursorColor: Color(0xFFFB6938),
+                    cursorColor: primaryColor,
                   ),
                   SizedBox(height: 16),
                   TextField(
@@ -138,10 +139,10 @@ class _MyWishesPageState extends State<MyWishesPage> {
                       border: OutlineInputBorder(),
                       labelStyle: TextStyle(color: Colors.grey),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFFB6938)),
+                        borderSide: BorderSide(color: primaryColor),
                       ),
                     ),
-                    cursorColor: Color(0xFFFB6938),
+                    cursorColor: primaryColor,
                     keyboardType: TextInputType.number,
                   ),
                 ],
@@ -155,7 +156,7 @@ class _MyWishesPageState extends State<MyWishesPage> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFB6938),
+                backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {

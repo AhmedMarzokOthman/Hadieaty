@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 
 class EventDialog extends StatefulWidget {
   final int? activeIndex;
-  const EventDialog({super.key, this.activeIndex});
+  final VoidCallback? onSuccess;
+
+  const EventDialog({super.key, this.activeIndex, this.onSuccess});
 
   @override
   State<EventDialog> createState() => _EventDialogState();
@@ -34,10 +36,12 @@ class _EventDialogState extends State<EventDialog> {
                     border: OutlineInputBorder(),
                     labelStyle: TextStyle(color: Colors.grey),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFB6938)),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
-                  cursorColor: Color(0xFFFB6938),
+                  cursorColor: Theme.of(context).colorScheme.primary,
                 ),
                 SizedBox(height: 16),
                 TextField(
@@ -47,11 +51,13 @@ class _EventDialogState extends State<EventDialog> {
                     border: OutlineInputBorder(),
                     labelStyle: TextStyle(color: Colors.grey),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFB6938)),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                     hintText: 'e.g. Birthday, Graduation, Anniversary',
                   ),
-                  cursorColor: Color(0xFFFB6938),
+                  cursorColor: Theme.of(context).colorScheme.primary,
                 ),
                 SizedBox(height: 16),
                 // Date picker row
@@ -74,7 +80,8 @@ class _EventDialogState extends State<EventDialog> {
                             return Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: ColorScheme.light(
-                                  primary: Color(0xFFFB6938),
+                                  primary:
+                                      Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                               child: child!,
@@ -90,7 +97,9 @@ class _EventDialogState extends State<EventDialog> {
                       },
                       child: Text(
                         'Select Date',
-                        style: TextStyle(color: Color(0xFFFB6938)),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
                   ],
@@ -105,7 +114,7 @@ class _EventDialogState extends State<EventDialog> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFB6938),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
@@ -142,6 +151,11 @@ class _EventDialogState extends State<EventDialog> {
                       context,
                       true,
                     ); // Return true to indicate refresh needed
+                  }
+
+                  // Call the onSuccess callback if it's provided
+                  if (widget.onSuccess != null) {
+                    widget.onSuccess!();
                   }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(

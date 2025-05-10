@@ -12,16 +12,15 @@ import 'package:hadieaty/models/wish_model.dart';
 import 'package:hadieaty/models/event_model.dart';
 
 class AddWishDialog extends StatefulWidget {
-  final TextEditingController nameController;
-  final TextEditingController priceController;
-  final int activeIndex;
-  final Function(int) onIndexChanged;
+  final TextEditingController? nameController;
+  final TextEditingController? priceController;
+  final VoidCallback? onSuccess;
+
   const AddWishDialog({
     super.key,
-    required this.nameController,
-    required this.priceController,
-    required this.activeIndex,
-    required this.onIndexChanged,
+    this.nameController,
+    this.priceController,
+    this.onSuccess,
   });
 
   @override
@@ -29,6 +28,8 @@ class AddWishDialog extends StatefulWidget {
 }
 
 class _AddWishDialogState extends State<AddWishDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _priceController;
   File? _selectedImage;
   String? _imageUrl;
   bool _isLoading = false;
@@ -39,7 +40,21 @@ class _AddWishDialogState extends State<AddWishDialog> {
   @override
   void initState() {
     super.initState();
+    _nameController = widget.nameController ?? TextEditingController();
+    _priceController = widget.priceController ?? TextEditingController();
     _fetchEvents();
+  }
+
+  @override
+  void dispose() {
+    // Only dispose controllers if we created them internally
+    if (widget.nameController == null) {
+      _nameController.dispose();
+    }
+    if (widget.priceController == null) {
+      _priceController.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _fetchEvents() async {
@@ -90,31 +105,35 @@ class _AddWishDialogState extends State<AddWishDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: widget.nameController,
+                controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Wish Name',
                   border: OutlineInputBorder(),
                   labelStyle: TextStyle(color: Colors.grey),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
-                cursorColor: Color(0xFFFB6938),
+                cursorColor: Theme.of(context).colorScheme.primary,
               ),
               SizedBox(height: 16),
               TextField(
-                controller: widget.priceController,
+                controller: _priceController,
                 decoration: InputDecoration(
                   labelText: 'Wish Price',
                   border: OutlineInputBorder(),
                   prefixText: '\$',
                   labelStyle: TextStyle(color: Colors.grey),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 keyboardType: TextInputType.number,
-                cursorColor: Color(0xFFFB6938),
+                cursorColor: Theme.of(context).colorScheme.primary,
               ),
               SizedBox(height: 16),
 
@@ -126,7 +145,7 @@ class _AddWishDialogState extends State<AddWishDialog> {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFFB6938),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   )
@@ -151,7 +170,7 @@ class _AddWishDialogState extends State<AddWishDialog> {
                       underline: SizedBox(),
                       icon: Icon(
                         Icons.arrow_drop_down,
-                        color: Color(0xFFFB6938),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       items: [
                         DropdownMenuItem<String>(
@@ -268,19 +287,19 @@ class _AddWishDialogState extends State<AddWishDialog> {
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
-                color: Color(0xFFFB6938),
+                color: Theme.of(context).colorScheme.primary,
                 strokeWidth: 2,
               ),
             )
             : ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFFB6938),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
                 // Validate inputs
-                if (widget.nameController.text.isEmpty ||
-                    widget.priceController.text.isEmpty ||
+                if (_nameController.text.isEmpty ||
+                    _priceController.text.isEmpty ||
                     _selectedImage == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -293,8 +312,8 @@ class _AddWishDialogState extends State<AddWishDialog> {
                 // Create and save wish
                 final wish = WishModel(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: widget.nameController.text,
-                  price: widget.priceController.text,
+                  name: _nameController.text,
+                  price: _priceController.text,
                   image: _imageUrl, // Store the image path as string
                   associatedEvent:
                       _selectedEventId, // Pass the selected event ID
@@ -321,11 +340,8 @@ class _AddWishDialogState extends State<AddWishDialog> {
                   );
 
                   // If currently on the wishlist page, refresh it by changing to another tab and back
-                  if (widget.activeIndex == 2) {
-                    widget.onIndexChanged(0);
-                    Future.delayed(Duration(milliseconds: 100), () {
-                      widget.onIndexChanged(2);
-                    });
+                  if (widget.onSuccess != null) {
+                    widget.onSuccess!();
                   }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(

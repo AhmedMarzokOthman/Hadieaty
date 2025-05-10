@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/cubits/event/event_cubit.dart';
 import 'package:hadieaty/cubits/event/event_state.dart';
 import 'package:hadieaty/models/event_model.dart';
@@ -78,7 +79,7 @@ class EventsPage extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color:
                                             isSelected
-                                                ? Color(0xFFFB6938)
+                                                ? primaryColor
                                                 : Colors.grey[200],
                                         borderRadius: BorderRadius.circular(20),
                                       ),
@@ -148,7 +149,7 @@ class EventsPage extends StatelessWidget {
                                         status == 'All'
                                             ? Colors.blue
                                             : status == 'Upcoming'
-                                            ? Color(0xFFFB6938)
+                                            ? primaryColor
                                             : status == 'Current'
                                             ? Colors.green
                                             : Colors.grey;
@@ -211,6 +212,7 @@ class EventsPage extends StatelessWidget {
                 ),
               ),
 
+              SizedBox(height: 25),
               // Event list
               Expanded(
                 child:
@@ -309,12 +311,12 @@ class EventsPage extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: 'Event Name',
                         border: OutlineInputBorder(),
-                        labelStyle: TextStyle(color: Colors.grey),
+                        labelStyle: TextStyle(color: Color(0xff595757)),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFFB6938)),
+                          borderSide: BorderSide(color: primaryColor),
                         ),
                       ),
-                      cursorColor: Color(0xFFFB6938),
+                      cursorColor: primaryColor,
                     ),
                     SizedBox(height: 16),
                     TextField(
@@ -322,13 +324,13 @@ class EventsPage extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: 'Event Type',
                         border: OutlineInputBorder(),
-                        labelStyle: TextStyle(color: Colors.grey),
+                        labelStyle: TextStyle(color: Color(0xff595757)),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFFB6938)),
+                          borderSide: BorderSide(color: primaryColor),
                         ),
                         hintText: 'e.g. Birthday, Graduation, Anniversary',
                       ),
-                      cursorColor: Color(0xFFFB6938),
+                      cursorColor: primaryColor,
                     ),
                     SizedBox(height: 16),
                     // Date picker row
@@ -367,7 +369,7 @@ class EventsPage extends StatelessWidget {
                           },
                           child: Text(
                             'Select Date',
-                            style: TextStyle(color: Color(0xFFFB6938)),
+                            style: TextStyle(color: primaryColor),
                           ),
                         ),
                       ],
@@ -382,7 +384,7 @@ class EventsPage extends StatelessWidget {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFB6938),
+                    backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () async {
@@ -423,6 +425,7 @@ class EventsPage extends StatelessWidget {
                   },
                   child: Text(
                     existingEvent == null ? 'Add Event' : 'Save Changes',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],

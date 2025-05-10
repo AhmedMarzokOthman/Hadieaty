@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/models/event_model.dart';
 import 'package:intl/intl.dart';
 
@@ -19,7 +20,7 @@ class EventCard extends StatelessWidget {
       case 'Current':
         return Colors.green;
       case 'Upcoming':
-        return Color(0xFFFB6938);
+        return primaryColor;
       case 'Past':
         return Colors.grey;
       default:
@@ -101,7 +102,7 @@ class EventCard extends StatelessWidget {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Color(0xFFFB6938),
+                          color: primaryColor,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(

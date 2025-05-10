@@ -40,7 +40,33 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
+  // Search friends by name or username
+  void searchFriends(String query) async {
+    try {
+      final allFriends = await _userController.getFriendsFromLocal();
+
+      final filteredFriends =
+          allFriends.where((friend) {
+            final nameMatch = friend.name.toLowerCase().contains(
+              query.toLowerCase(),
+            );
+            final usernameMatch = friend.username.toLowerCase().contains(
+              query.toLowerCase(),
+            );
+            return nameMatch || usernameMatch;
+          }).toList();
+
+      emit(state.copyWith(friends: filteredFriends));
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
   void changeTab(int index) {
+    emit(state.copyWith(activeIndex: index));
+  }
+
+  void setActiveIndex(int index) {
     emit(state.copyWith(activeIndex: index));
   }
 

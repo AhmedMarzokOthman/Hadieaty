@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/controllers/user_controller.dart';
 import 'package:hadieaty/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -220,7 +221,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
+              colors: [Color(0xFFFFAB5D), primaryColor],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -246,7 +247,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Color(0xFFFB6938), width: 2),
+                        border: Border.all(color: primaryColor, width: 2),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(100),
@@ -254,7 +255,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             _isProfilePictureLoading
                                 ? Center(
                                   child: CircularProgressIndicator(
-                                    color: Color(0xFFFB6938),
+                                    color: primaryColor,
                                   ),
                                 )
                                 : _selectedImage != null
@@ -300,7 +301,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         child: Container(
                           padding: EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Color(0xFFFB6938),
+                            color: primaryColor,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -325,7 +326,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                    borderSide: BorderSide(color: primaryColor),
                   ),
                 ),
                 validator: (value) {
@@ -352,7 +353,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               : Icon(Icons.error, color: Colors.red)
                           : null,
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFB6938)),
+                    borderSide: BorderSide(color: primaryColor),
                   ),
                   helperText:
                       _usernameController.text != widget.user.username &&
@@ -408,7 +409,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     backgroundColor:
                         _isProfilePictureLoading || _isLoading
                             ? Colors.grey
-                            : Color(0xFFFB6938),
+                            : primaryColor,
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/cubits/pledge/pledge_cubit.dart';
 import 'package:hadieaty/cubits/pledge/pledge_state.dart';
 import 'package:intl/intl.dart';
@@ -30,7 +31,7 @@ class PledgedGiftsPage extends StatelessWidget {
         builder: (context, state) {
           if (state.isLoading) {
             return Center(
-              child: CircularProgressIndicator(color: Color(0xFFFB6938)),
+              child: CircularProgressIndicator(color: primaryColor),
             );
           }
 
@@ -127,13 +128,13 @@ class PledgedGiftsPage extends StatelessWidget {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFFB6938).withAlpha(30),
+                                    color: primaryColor.withAlpha(30),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                     '\$${wish.price}',
                                     style: TextStyle(
-                                      color: Color(0xFFFB6938),
+                                      color: primaryColor,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
