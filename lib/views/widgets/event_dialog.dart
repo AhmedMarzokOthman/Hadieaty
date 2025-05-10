@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hadieaty/controllers/event_controller.dart';
 import 'package:hadieaty/models/event_model.dart';
-import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/cubits/event/event_cubit.dart';
 
 class EventDialog extends StatefulWidget {
   final int? activeIndex;
@@ -122,7 +122,7 @@ class _EventDialogState extends State<EventDialog> {
                 if (nameController.text.isEmpty ||
                     typeController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please `fill all fields')),
+                    SnackBar(content: Text('Please fill all fields')),
                   );
                   return;
                 }
@@ -135,9 +135,10 @@ class _EventDialogState extends State<EventDialog> {
                 );
 
                 try {
-                  final eventBox = await Hive.openBox<EventModel>('eventBox');
-                  await eventBox.put(event.id, event);
-                  await EventController().addEvent(event);
+                  // Use EventCubit instead of direct controller access
+                  // This will properly update the state and trigger UI updates
+                  await context.read<EventCubit>().addEvent(event);
+
                   Navigator.pop(context);
 
                   // Show success message

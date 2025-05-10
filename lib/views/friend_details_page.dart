@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/cubits/friend/friend_cubit.dart';
 import 'package:hadieaty/cubits/friend/friend_state.dart';
 import 'package:hadieaty/models/user_model.dart';
@@ -27,7 +28,7 @@ class FriendDetailsPage extends StatelessWidget {
               flexibleSpace: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
+                    colors: [primaryColor, primaryColor2],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),

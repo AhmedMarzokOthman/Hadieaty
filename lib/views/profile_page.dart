@@ -22,28 +22,53 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   // To trigger refresh after profile update
   bool _refreshToggle = false;
+  // Track expansion state at class level
+  bool _isEventsExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load profile data once when the page is created
+    Future.microtask(() => context.read<ProfileCubit>().loadProfile());
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Trigger profile data loading when page is shown
-    context.read<ProfileCubit>().loadProfile();
-
-    return BlocBuilder<ProfileCubit, ProfileState>(
+    return BlocConsumer<ProfileCubit, ProfileState>(
+      // Only rebuild UI when these state properties change
+      buildWhen:
+          (previous, current) =>
+              previous.isLoading != current.isLoading ||
+              previous.error != current.error ||
+              previous.user != current.user ||
+              previous.events != current.events ||
+              previous.refreshToggle != current.refreshToggle,
+      // Listen for state changes but don't rebuild the whole UI
+      listener: (context, state) {
+        // Handle errors if needed
+        if (state.error != null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.error!)));
+        }
+      },
       builder: (context, state) {
         if (state.isLoading) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            body: Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           );
         }
 
-        if (state.error != null) {
-          return Center(child: Text(state.error!));
-        }
-
         if (state.user == null) {
-          return Center(child: Text("User not found"));
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.background,
+            body: Center(child: Text("User not found")),
+          );
         }
 
         final user = state.user!;
@@ -124,6 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
           Text(
             user.name,
             style: TextStyle(
+              fontFamily: "Manrope",
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -133,6 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
           Text(
             user.email,
             style: TextStyle(
+              fontFamily: "Manrope",
               fontSize: 14,
               color: Colors.white.withOpacity(0.8),
             ),
@@ -144,6 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Text(
                 user.username,
                 style: TextStyle(
+                  fontFamily: "Manrope",
                   fontSize: 14,
                   color: Colors.white.withOpacity(0.8),
                 ),
@@ -255,6 +283,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               label,
               style: TextStyle(
+                fontFamily: "Manrope",
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context).colorScheme.onSurface,
@@ -267,83 +296,149 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildEventsAndGiftsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 20, bottom: 12),
-          child: Text(
-            "My Events & Gifts",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onBackground,
-            ),
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: BlocBuilder<ProfileCubit, ProfileState>(
-            builder: (context, state) {
-              if (state.isLoading) {
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              if (state.error != null) {
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Center(child: Text("Error loading events")),
-                );
-              }
-
-              final events = state.events;
-
-              if (events.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(Icons.event_busy, size: 40, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text(
-                          "No events created yet",
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
+    return StatefulBuilder(
+      builder: (context, sectionSetState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Expandable header
+            GestureDetector(
+              onTap: () {
+                // Use the local setState to only rebuild this section
+                sectionSetState(() {
+                  _isEventsExpanded = !_isEventsExpanded;
+                });
+              },
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(_isEventsExpanded ? 0 : 16),
+                    bottomRight: Radius.circular(_isEventsExpanded ? 0 : 16),
                   ),
-                );
-              }
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "My Events & Gifts",
+                      style: TextStyle(
+                        fontFamily: "Manrope",
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Icon(
+                      _isEventsExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children:
-                    events.map((event) {
-                      return EventItemProfile(
-                        key: ValueKey(event.id), // Unique key for each item
-                        event: event,
-                      );
-                    }).toList(),
-              );
-            },
-          ),
-        ),
-      ],
+            // Expandable content
+            AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              height: _isEventsExpanded ? null : 0,
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+                boxShadow:
+                    _isEventsExpanded
+                        ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
+                        : [],
+              ),
+              child:
+                  _isEventsExpanded
+                      ? BlocBuilder<ProfileCubit, ProfileState>(
+                        builder: (context, state) {
+                          if (state.isLoading) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+
+                          if (state.error != null) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Center(
+                                child: Text("Error loading events"),
+                              ),
+                            );
+                          }
+
+                          final events = state.events;
+
+                          if (events.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.event_busy,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      "No events created yet",
+                                      style: TextStyle(
+                                        fontFamily: "Manrope",
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: events.length,
+                            itemBuilder: (context, index) {
+                              final event = events[index];
+                              return EventItemProfile(
+                                key: ValueKey(event.id),
+                                event: event,
+                              );
+                            },
+                          );
+                        },
+                      )
+                      : Container(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -369,6 +464,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Text(
               "Settings",
               style: TextStyle(
+                fontFamily: "Manrope",
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onBackground,

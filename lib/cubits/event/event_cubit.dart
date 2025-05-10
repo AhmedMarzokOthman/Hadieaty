@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:hadieaty/controllers/event_controller.dart';
 import 'package:hadieaty/cubits/event/event_state.dart';
@@ -14,11 +16,17 @@ class EventCubit extends Cubit<EventState> {
   Future<void> loadEvents() async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      // Get events from Firebase
       final events = await _eventController.getEvents();
+
+      // Update local storage with latest events
       for (var event in events) {
+        log(event.name.toString());
         await _eventController.saveEventToLocal(event);
       }
-      emit(state.copyWith(isLoading: false, events: events));
+
+      // Emit new state with updated events
+      emit(state.copyWith(isLoading: false, events: events, error: null));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
@@ -27,10 +35,21 @@ class EventCubit extends Cubit<EventState> {
   Future<void> addEvent(EventModel event) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      log('Adding event: ${event.name}');
+
+      // First add to Firebase
       await _eventController.addEvent(event);
+      log('Event added to Firebase');
+
+      // Then update local storage
       await _eventController.saveEventToLocal(event);
+      log('Event added to local storage');
+
+      // Reload all events to update the UI
       await loadEvents();
+      log('Events reloaded, UI should update');
     } catch (e) {
+      log('Error adding event: $e');
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
@@ -38,7 +57,7 @@ class EventCubit extends Cubit<EventState> {
   Future<void> updateEvent(EventModel event) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
-      await _eventController.addEvent(event); // Same as update
+      await _eventController.editEvent(event);
       await _eventController.saveEventToLocal(event);
       await loadEvents();
     } catch (e) {

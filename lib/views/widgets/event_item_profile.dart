@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/cubits/profile/profile_cubit.dart';
 import 'package:hadieaty/cubits/profile/profile_state.dart';
 import 'package:hadieaty/models/event_model.dart';
@@ -30,16 +31,16 @@ class _EventItemProfileState extends State<EventItemProfile> {
     } else if (eventDate.isAtSameMomentAs(today)) {
       return Colors.green; // Current event
     } else {
-      return Color(0xFFFFAB5D); // Upcoming event
+      return primaryColor; // Upcoming event
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      key: PageStorageKey<String>(
-        widget.event.id,
-      ), // Key to maintain expansion state
+      key: PageStorageKey<String>(widget.event.id),
+      maintainState: true,
+      initiallyExpanded: isExpanded,
       title: Text(
         widget.event.name,
         style: TextStyle(fontWeight: FontWeight.bold),
@@ -64,12 +65,13 @@ class _EventItemProfileState extends State<EventItemProfile> {
         child: Icon(Icons.event, color: Colors.white),
       ),
       onExpansionChanged: (expanded) {
-        setState(() {
-          isExpanded = expanded;
-        });
+        if (mounted) {
+          setState(() {
+            isExpanded = expanded;
+          });
+        }
 
         if (expanded) {
-          // Load wishes for this event when tile is expanded
           context.read<ProfileCubit>().loadEventWishes(widget.event.id);
         }
       },

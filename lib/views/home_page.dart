@@ -79,6 +79,7 @@ class HomePage extends StatelessWidget {
                     title: Text(
                       "Hadieaty",
                       style: TextStyle(
+                        fontFamily: "Manrope",
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
                         color: primaryColor,
@@ -223,6 +224,7 @@ class HomePage extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
+                fontFamily: "Manrope",
                 fontSize: 12,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                 color:
@@ -260,6 +262,7 @@ class HomePage extends StatelessWidget {
                 Text(
                   "Hadieaty",
                   style: TextStyle(
+                    fontFamily: "Manrope",
                     fontWeight: FontWeight.bold,
                     fontSize: 28,
                     color: Colors.white,
@@ -302,6 +305,7 @@ class HomePage extends StatelessWidget {
                           Text(
                             user.name,
                             style: TextStyle(
+                              fontFamily: "Manrope",
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -312,6 +316,7 @@ class HomePage extends StatelessWidget {
                           Text(
                             user.email,
                             style: TextStyle(
+                              fontFamily: "Manrope",
                               fontSize: 12,
                               color: Colors.white.withOpacity(0.8),
                             ),
@@ -352,17 +357,7 @@ class HomePage extends StatelessWidget {
             context.read<HomeCubit>().setActiveIndex(4);
           }),
           Divider(),
-          _buildDrawerItem(context, Icons.settings_rounded, "Settings", () {
-            // Navigate to settings
-          }),
-          _buildDrawerItem(
-            context,
-            Icons.help_outline_rounded,
-            "Help & Support",
-            () {
-              // Navigate to help
-            },
-          ),
+
           _buildDrawerItem(
             context,
             Icons.exit_to_app_rounded,
@@ -396,6 +391,7 @@ class HomePage extends StatelessWidget {
       title: Text(
         title,
         style: TextStyle(
+          fontFamily: "Manrope",
           color: textColor ?? Colors.black87,
           fontWeight: FontWeight.w500,
         ),
@@ -424,6 +420,7 @@ class HomePage extends StatelessWidget {
                     Text(
                       "Add New",
                       style: TextStyle(
+                        fontFamily: "Manrope",
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -500,11 +497,19 @@ class HomePage extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        style: TextStyle(
+          fontFamily: "Manrope",
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+        ),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        style: TextStyle(
+          fontFamily: "Manrope",
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
       ),
       onTap: onTap,
     );
@@ -543,18 +548,11 @@ class HomePage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Welcome back,",
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
         SizedBox(height: 4),
         Text(
-          user.name.split(' ')[0] + "! 👋",
+          user.name.split(' ')[0] + " 👋",
           style: TextStyle(
+            fontFamily: "Manrope",
             fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onBackground,
@@ -563,7 +561,11 @@ class HomePage extends StatelessWidget {
         SizedBox(height: 4),
         Text(
           "Track your gifts and events with friends",
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          style: TextStyle(
+            fontFamily: "Manrope",
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
         ),
       ],
     );
@@ -724,6 +726,7 @@ class HomePage extends StatelessWidget {
           title: Text(
             title,
             style: TextStyle(
+              fontFamily: "Manrope",
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: Theme.of(context).colorScheme.onBackground,

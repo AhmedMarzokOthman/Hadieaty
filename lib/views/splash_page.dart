@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/constants/colors.dart';
 import 'package:hadieaty/cubits/auth/auth_cubit.dart';
 import 'package:hadieaty/cubits/auth/auth_state.dart';
 import 'package:hadieaty/views/home_page.dart';
@@ -69,7 +70,7 @@ class _SplashPageState extends State<SplashPage> {
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
+                colors: [Color(0xFFFFAB5D), primaryColor],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -102,7 +103,7 @@ class _SplashPageState extends State<SplashPage> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            foregroundColor: Color(0xFFFB6938),
+                            foregroundColor: primaryColor,
                           ),
                           onPressed: () {
                             setState(() {
