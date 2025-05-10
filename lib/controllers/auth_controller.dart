@@ -29,7 +29,7 @@ class AuthController {
       GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       // print('\x1B[34mGoogle User: ${googleUser.toString()}\x1B[0m');
       if (googleUser == null) {
-        return {"statusCode": 400, "data": "Sign-in cancelled by user"};
+        return {"statusCode": 400, "data": "Sign-in cancelled"};
       }
       GoogleSignInAuthentication? googleAuth = await googleUser.authentication;
 

@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hadieaty/cubits/friend/friend_cubit.dart';
-import 'package:hadieaty/cubits/friend/friend_state.dart';
+import 'package:hadieaty/cubits/profile/profile_cubit.dart';
+import 'package:hadieaty/cubits/profile/profile_state.dart';
 import 'package:hadieaty/models/event_model.dart';
 import 'package:intl/intl.dart';
 
-class EventItem extends StatelessWidget {
-  const EventItem({super.key, required this.event});
+class EventItemProfile extends StatefulWidget {
+  const EventItemProfile({super.key, required this.event});
   final EventModel event;
+
+  @override
+  State<EventItemProfile> createState() => _EventItemProfileState();
+}
+
+class _EventItemProfileState extends State<EventItemProfile> {
+  bool isExpanded = false;
 
   Color _getEventColor(EventModel event) {
     final now = DateTime.now();
@@ -30,16 +37,22 @@ class EventItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: Text(event.name, style: TextStyle(fontWeight: FontWeight.bold)),
+      key: PageStorageKey<String>(
+        widget.event.id,
+      ), // Key to maintain expansion state
+      title: Text(
+        widget.event.name,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Type: ${event.type}'),
+          Text('Type: ${widget.event.type}'),
           Text(
-            'Date: ${DateFormat('MMM d, yyyy').format(event.date)}',
+            'Date: ${DateFormat('MMM d, yyyy').format(widget.event.date)}',
             style: TextStyle(
               color:
-                  event.date.isAfter(DateTime.now())
+                  widget.event.date.isAfter(DateTime.now())
                       ? Colors.green[700]
                       : Colors.grey,
             ),
@@ -47,17 +60,21 @@ class EventItem extends StatelessWidget {
         ],
       ),
       leading: CircleAvatar(
-        backgroundColor: _getEventColor(event),
+        backgroundColor: _getEventColor(widget.event),
         child: Icon(Icons.event, color: Colors.white),
       ),
       onExpansionChanged: (expanded) {
+        setState(() {
+          isExpanded = expanded;
+        });
+
         if (expanded) {
           // Load wishes for this event when tile is expanded
-          context.read<FriendCubit>().loadEventWishes(event.id);
+          context.read<ProfileCubit>().loadEventWishes(widget.event.id);
         }
       },
       children: [
-        BlocBuilder<FriendCubit, FriendState>(
+        BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
             if (state.isLoadingEventWishes) {
               return Padding(
@@ -66,7 +83,7 @@ class EventItem extends StatelessWidget {
               );
             }
 
-            final wishes = state.eventWishes;
+            final wishes = state.eventWishes[widget.event.id] ?? [];
 
             if (wishes.isEmpty) {
               return Padding(
@@ -94,6 +111,21 @@ class EventItem extends StatelessWidget {
                                   width: 40,
                                   height: 40,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.grey[700],
+                                        size: 20,
+                                      ),
+                                    );
+                                  },
                                 ),
                               )
                               : Container(

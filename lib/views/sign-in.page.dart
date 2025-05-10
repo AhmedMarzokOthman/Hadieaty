@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/cubits/auth/auth_cubit.dart';
+import 'package:hadieaty/cubits/auth/auth_state.dart';
 import 'package:hadieaty/views/home_page.dart';
-import 'package:hadieaty/controllers/auth_controller.dart';
 
 class SignInPage extends StatelessWidget {
   const SignInPage({super.key});
@@ -44,57 +46,94 @@ class SignInPage extends StatelessWidget {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Center(
-          child: Container(
-            padding: EdgeInsets.only(left: 50, right: 50, top: 20),
-            child: ElevatedButton(
-              onPressed: () async {
-                final value = await AuthController().signInWithGoogle();
-                if (value["statusCode"] == 200) {
-                  if (context.mounted) {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => HomePage()),
-                    );
-                  }
-                } else {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(value["data"])));
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                padding: EdgeInsets.all(10),
-                foregroundColor: Colors.grey,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    "assets/imgs/google_icon.png",
-                    width: 25,
-                    height: 25,
-                  ),
-                  SizedBox(width: 15),
-                  Text(
-                    "Continue with Google",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
+      body: BlocConsumer<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.error!)));
+          }
+
+          if (state.isAuthenticated) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          }
+        },
+        builder: (context, state) {
+          return SafeArea(
+            child: Center(
+              child:
+                  state.isLoading
+                      ? Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFFB6938),
+                        ),
+                      )
+                      : Container(
+                        padding: EdgeInsets.only(left: 50, right: 50, top: 20),
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: MediaQuery.of(context).size.height * 0.08,
+                        child: ElevatedButton(
+                          onPressed:
+                              state.isLoading
+                                  ? null
+                                  : () =>
+                                      context
+                                          .read<AuthCubit>()
+                                          .signInWithGoogle(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            foregroundColor: Colors.grey,
+                          ),
+                          child:
+                              state.isLoading
+                                  ? Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFFFB6938),
+                                    ),
+                                  )
+                                  : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        "assets/imgs/google_icon.png",
+                                        width: 25,
+                                        height: 25,
+                                      ),
+                                      SizedBox(width: 15),
+                                      Expanded(
+                                        child: Center(
+                                          child: Text(
+                                            "Continue with Google",
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              overflow: TextOverflow.ellipsis,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                        ),
+                      ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

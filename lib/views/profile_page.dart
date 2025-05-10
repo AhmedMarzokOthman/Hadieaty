@@ -1,14 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hadieaty/controllers/event_controller.dart';
 import 'package:hadieaty/controllers/user_controller.dart';
-import 'package:hadieaty/models/event_model.dart';
 import 'package:hadieaty/views/edit_profile_page.dart';
 import 'package:hadieaty/views/pledged_gifts_page.dart';
-import 'package:hadieaty/views/widgets/event_item.dart';
+import 'package:hadieaty/views/widgets/event_item_profile.dart';
 import 'package:hadieaty/views/widgets/setting_item.dart';
 import 'package:hadieaty/views/widgets/settings_section.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/cubits/profile/profile_cubit.dart';
+import 'package:hadieaty/cubits/profile/profile_state.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -23,27 +24,24 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // print('\x1B[32m ${FirebaseAuth.instance.currentUser!.uid} \x1B[0m');
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    // Trigger profile data loading when page is shown
+    context.read<ProfileCubit>().loadProfile();
 
-    return FutureBuilder(
-      // Add _refreshToggle to force refresh when needed
-      future: UserController().getUserFromLocal(uid),
-      key: ValueKey(
-        _refreshToggle,
-      ), // This forces rebuild when _refreshToggle changes
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        if (state.isLoading) {
           return Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError) {
-          return Center(child: Text(snapshot.error.toString()));
+
+        if (state.error != null) {
+          return Center(child: Text(state.error!));
         }
-        if (snapshot.data == null) {
+
+        if (state.user == null) {
           return Center(child: Text("User not found"));
         }
-        // print('\x1B[32m ${snapshot.data!.profilePicture.toString()} \x1B[0m');
-        final user = snapshot.data!;
+
+        final user = state.user!;
         return SafeArea(
           child: Scaffold(
             backgroundColor: Colors.white,
@@ -307,24 +305,23 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          child: FutureBuilder<List<EventModel>>(
-            future: EventController().getEvents(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+          child: BlocBuilder<ProfileCubit, ProfileState>(
+            builder: (context, state) {
+              if (state.isLoading) {
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
 
-              if (snapshot.hasError) {
+              if (state.error != null) {
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Center(child: Text("Error loading events")),
                 );
               }
 
-              final events = snapshot.data ?? [];
+              final events = state.events;
 
               if (events.isEmpty) {
                 return Padding(
@@ -344,17 +341,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               }
 
-              // Sort events by date (newest first)
-              events.sort((a, b) => b.date.compareTo(a.date));
-
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  final event = events[index];
-                  return EventItem(event: event);
-                },
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children:
+                    events.map((event) {
+                      return EventItemProfile(
+                        key: ValueKey(event.id), // Unique key for each item
+                        event: event,
+                      );
+                    }).toList(),
               );
             },
           ),

@@ -1,31 +1,22 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:hadieaty/controllers/pledge_controller.dart';
-import 'package:hadieaty/models/wish_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/cubits/pledge/pledge_cubit.dart';
+import 'package:hadieaty/cubits/pledge/pledge_state.dart';
 import 'package:intl/intl.dart';
 
-class PledgedGiftsPage extends StatefulWidget {
+class PledgedGiftsPage extends StatelessWidget {
   final bool showAppBar;
   const PledgedGiftsPage({super.key, this.showAppBar = false});
 
   @override
-  State<PledgedGiftsPage> createState() => _PledgedGiftsPageState();
-}
-
-class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
-  final PledgeController _pledgeController = PledgeController();
-
-  Future<void> _unpledgeGift(String friendUid, String giftId) async {
-    await _pledgeController.unpledgeGift(friendUid, giftId);
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Load pledged gifts when the page is shown
+    context.read<PledgeCubit>().loadPledgedGifts();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar:
-          widget.showAppBar
+          showAppBar
               ? AppBar(
                 title: Text('Pledged Gifts'),
                 backgroundColor: Colors.white,
@@ -35,22 +26,21 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                 ),
               )
               : AppBar(toolbarHeight: 0),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _getPledgedGiftsWithDetails(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: BlocBuilder<PledgeCubit, PledgeState>(
+        builder: (context, state) {
+          if (state.isLoading) {
             return Center(
               child: CircularProgressIndicator(color: Color(0xFFFB6938)),
             );
           }
 
-          if (snapshot.hasError) {
+          if (state.error != null) {
             return Center(
-              child: Text('Error loading pledged gifts: ${snapshot.error}'),
+              child: Text('Error loading pledged gifts: ${state.error}'),
             );
           }
 
-          final pledgedGifts = snapshot.data ?? [];
+          final pledgedGifts = state.pledgedGifts;
 
           if (pledgedGifts.isEmpty) {
             return Center(
@@ -78,8 +68,8 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
             itemCount: pledgedGifts.length,
             itemBuilder: (context, index) {
               final item = pledgedGifts[index];
-              final wish = item['wish'] as WishModel;
-              final friendName = item['friendName'] as String;
+              final wish = item['wish'];
+              final friendName = item['friendName'];
 
               return SafeArea(
                 child: Card(
@@ -171,9 +161,9 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 TextButton.icon(
-                                  onPressed: () async {
-                                    await _unpledgeGift(
-                                      item['friendUid'] as String,
+                                  onPressed: () {
+                                    context.read<PledgeCubit>().unpledgeGift(
+                                      item['friendUid'],
                                       wish.id,
                                     );
                                   },
@@ -197,47 +187,5 @@ class _PledgedGiftsPageState extends State<PledgedGiftsPage> {
         },
       ),
     );
-  }
-
-  Future<List<Map<String, dynamic>>> _getPledgedGiftsWithDetails() async {
-    try {
-      // Get the pledged gifts collection data
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection("Store Data")
-              .doc(PledgeController().uid)
-              .collection("myPledgedGifts")
-              .get();
-
-      List<Map<String, dynamic>> result = [];
-
-      // Process each document
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final gift = WishModel.fromJson(data['gift']);
-        final friendUid = data['friendUid'] as String;
-
-        // Get friend details
-        final friendDoc =
-            await FirebaseFirestore.instance
-                .collection("Store Data")
-                .doc(friendUid)
-                .get();
-
-        final friendData = friendDoc.data() ?? {};
-        final friendName = friendData['name'] ?? 'Unknown';
-
-        result.add({
-          'wish': gift,
-          'friendUid': friendUid,
-          'friendName': friendName,
-        });
-      }
-
-      return result;
-    } catch (e) {
-      // print('Error fetching pledged gifts: $e');
-      return [];
-    }
   }
 }

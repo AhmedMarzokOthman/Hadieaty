@@ -31,6 +31,26 @@ class WishModel {
     this.associatedEvent,
   });
 
+  // Add copyWith method to create modified copies
+  WishModel copyWith({
+    String? id,
+    String? name,
+    String? image,
+    String? price,
+    Map<String, dynamic>? pledgedBy,
+    String? associatedEvent,
+  }) {
+    return WishModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      image: image ?? this.image,
+      price: price ?? this.price,
+      pledgedBy:
+          pledgedBy, // Deliberately not using ??. We want it to be null if null is passed
+      associatedEvent: associatedEvent ?? this.associatedEvent,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,

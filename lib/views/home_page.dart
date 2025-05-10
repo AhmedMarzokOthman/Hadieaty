@@ -1,146 +1,48 @@
 import 'package:circle_nav_bar/circle_nav_bar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hadieaty/controllers/user_controller.dart';
-import 'package:hadieaty/models/user_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hadieaty/cubits/home/home_cubit.dart';
+import 'package:hadieaty/cubits/home/home_state.dart';
 import 'package:hadieaty/views/events_page.dart';
 import 'package:hadieaty/views/my_wishes_page.dart';
 import 'package:hadieaty/views/pledged_gifts_page.dart';
 import 'package:hadieaty/views/profile_page.dart';
 import 'package:hadieaty/views/sign-in.page.dart';
-import 'package:hadieaty/controllers/auth_controller.dart';
+import 'package:hadieaty/cubits/auth/auth_cubit.dart';
 import 'package:hadieaty/views/widgets/add_friend_dialog.dart';
 import 'package:hadieaty/views/widgets/add_wish_dialog.dart';
 import 'package:hadieaty/views/widgets/event_dialog.dart';
 import 'package:hadieaty/views/widgets/friend_widget.dart';
-import 'package:hive/hive.dart';
 import 'package:animations/animations.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int activeIndex = 0;
-  late Future<dynamic> _userFuture;
-
-  Box<UserModel>? friendBox;
-  List<Widget> _pages = [];
-  bool _initialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    _userFuture = UserController().getUserFromLocal(uid);
-    _pages = _getDefaultPages(); // Set default pages first
-    _openFriendBox();
-  }
-
-  Future<void> _openFriendBox() async {
-    friendBox = await Hive.openBox<UserModel>('friendBox');
-    await _loadFriends();
-  }
-
-  List<UserModel> _getFriends() {
-    return friendBox?.values.toList() ?? [];
-  }
-
-  Future<void> _loadFriends() async {
-    try {
-      final friends = await UserController().getFriends();
-      for (var friend in friends) {
-        await UserController().saveFriendToLocal(friend);
-      }
-      _initializePages();
-      setState(() {
-        _initialized = true;
-      });
-    } catch (e) {
-      // print('Error loading friends: $e');
-      _initializePages();
-      setState(() {
-        _initialized = true;
-      });
-    }
-  }
-
-  void _initializePages() {
-    final friends = _getFriends();
-    _pages = [
-      ListView.builder(
-        itemCount: friends.isEmpty ? 1 : friends.length,
-        itemBuilder: (context, index) {
-          if (friends.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(height: 100),
-                  Icon(Icons.people_outline, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No friends yet', style: TextStyle(fontSize: 18)),
-                  SizedBox(height: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFB6938),
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () => _showAddFriendDialog(context),
-                    child: Text('Add Friend'),
-                  ),
-                ],
-              ),
-            );
-          }
-          final friend = friends[index];
-          return FriendWidget(friend: friend);
-        },
-      ),
-      EventsPage(),
-      MyWishesPage(),
-      PledgedGiftsPage(),
-      ProfilePage(),
-    ];
-  }
-
-  List<Widget> _getDefaultPages() {
-    return [
-      Center(child: CircularProgressIndicator()),
-      EventsPage(),
-      MyWishesPage(),
-      PledgedGiftsPage(),
-      ProfilePage(),
-    ];
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        if (!state.isInitialized) {
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
-    return FutureBuilder(
-      future: _userFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text(snapshot.error.toString()));
-        }
-        if (snapshot.data == null) {
+        final user = state.user;
+        if (user == null) {
           return Center(child: Text("User not found"));
         }
-        final user = snapshot.data!;
+
+        final List<Widget> pages = [
+          _buildFriendsPage(context, state),
+          EventsPage(),
+          MyWishesPage(),
+          PledgedGiftsPage(),
+          ProfilePage(),
+        ];
 
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            toolbarHeight: activeIndex != 0 ? 120 : 200,
+            toolbarHeight: state.activeIndex != 0 ? 120 : 200,
             centerTitle: true,
             automaticallyImplyLeading: false,
             flexibleSpace: Container(
@@ -218,7 +120,10 @@ class _HomePageState extends State<HomePage> {
                                         title: Text('Create Event'),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          _showAddEventDialog(context);
+                                          _showAddEventDialog(
+                                            context,
+                                            state.activeIndex,
+                                          );
                                         },
                                       ),
                                       ListTile(
@@ -229,7 +134,10 @@ class _HomePageState extends State<HomePage> {
                                         title: Text('Add Wish'),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          _showAddWishDialog(context);
+                                          _showAddWishDialog(
+                                            context,
+                                            state.activeIndex,
+                                          );
                                         },
                                       ),
                                     ],
@@ -247,13 +155,13 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const Spacer(),
-                    activeIndex != 0
+                    state.activeIndex != 0
                         ? Text(
-                          activeIndex == 1
+                          state.activeIndex == 1
                               ? "Events List"
-                              : activeIndex == 2
+                              : state.activeIndex == 2
                               ? "Wishes List"
-                              : activeIndex == 3
+                              : state.activeIndex == 3
                               ? "Pledged Gifts"
                               : "Profile",
                           style: TextStyle(
@@ -277,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(100),
                                   child: Image.network(
-                                    snapshot.data!.profilePicture ?? "",
+                                    user.profilePicture ?? "",
                                     width: 80,
                                     height: 80,
                                     fit: BoxFit.cover,
@@ -301,7 +209,7 @@ class _HomePageState extends State<HomePage> {
                                     Row(
                                       children: [
                                         Text(
-                                          "${_getFriends().length} Friends",
+                                          "${state.friends.length} Friends",
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
@@ -344,111 +252,11 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    foregroundColor: Colors.grey,
-                    backgroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      activeIndex = 0;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    leading: Icon(Icons.home),
-                    title: Text('Home'),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    foregroundColor: Colors.grey,
-                    backgroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      activeIndex = 1;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    leading: Icon(Icons.event),
-                    title: Text('Events'),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    foregroundColor: Colors.grey,
-                    backgroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      activeIndex = 2;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    leading: Icon(Icons.card_giftcard),
-                    title: Text('Wishes'),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    foregroundColor: Colors.grey,
-                    backgroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      activeIndex = 3;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    leading: Icon(Icons.redeem),
-                    title: Text('Pledged Gifts'),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    foregroundColor: Colors.grey,
-                    backgroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      activeIndex = 4;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    leading: Icon(Icons.person),
-                    title: Text('Profile'),
-                  ),
-                ),
+                _buildDrawerItem(context, Icons.home, 'Home', 0),
+                _buildDrawerItem(context, Icons.event, 'Events', 1),
+                _buildDrawerItem(context, Icons.card_giftcard, 'Wishes', 2),
+                _buildDrawerItem(context, Icons.redeem, 'Pledged Gifts', 3),
+                _buildDrawerItem(context, Icons.person, 'Profile', 4),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Divider(),
@@ -463,21 +271,14 @@ class _HomePageState extends State<HomePage> {
                     foregroundColor: Colors.grey,
                     backgroundColor: Colors.white,
                   ),
-                  onPressed: () async {
-                    final value = await AuthController().signOut();
-                    if (value["statusCode"] == 200) {
+                  onPressed: () {
+                    context.read<AuthCubit>().signOut().then((_) {
                       if (context.mounted) {
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (context) => SignInPage()),
                         );
                       }
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(value["data"])));
-                      }
-                    }
+                    });
                   },
                   child: ListTile(
                     leading: Icon(Icons.logout, color: Colors.red),
@@ -490,52 +291,30 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          bottomNavigationBar: CircleNavBar(
-            activeIndex: activeIndex,
-            activeIcons: const [
-              Icon(Icons.home, color: Colors.white),
-              Icon(Icons.event, color: Colors.white),
-              Icon(Icons.card_giftcard, color: Colors.white),
-              Icon(Icons.local_florist_rounded, color: Colors.white),
-              Icon(Icons.person, color: Colors.white),
-            ],
-            inactiveIcons: const [
-              Icon(Icons.home, color: Colors.white),
-              Icon(Icons.event, color: Colors.white),
-              Icon(Icons.card_giftcard, color: Colors.white),
-              Icon(Icons.local_florist_rounded, color: Colors.white),
-              Icon(Icons.person, color: Colors.white),
-            ],
-            color: Colors.white,
-            circleColor: Colors.white,
-            circleWidth: 75,
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: state.activeIndex,
             onTap: (index) {
-              setState(() {
-                activeIndex = index;
-              });
+              context.read<HomeCubit>().changeTab(index);
             },
-            // padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
-            // cornerRadius: const BorderRadius.only(
-            //   topLeft: Radius.circular(8),
-            //   topRight: Radius.circular(8),
-            //   bottomRight: Radius.circular(24),
-            //   bottomLeft: Radius.circular(24),
-            // ),
-            iconDurationMillSec: 0,
-            tabCurve: Curves.linear,
-            shadowColor: Colors.grey,
-            circleShadowColor: Colors.grey,
-            elevation: 10,
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
-            ),
-            circleGradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
-            ),
+            backgroundColor: Colors.white,
+            selectedItemColor: Color(0xFFFFAB5D),
+            unselectedItemColor: Color(0xFFFB6938),
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.card_giftcard),
+                label: 'Wishes',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.local_florist_rounded),
+                label: 'Pledged Gifts',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
           body: PageTransitionSwitcher(
             duration: Duration(milliseconds: 400),
@@ -551,14 +330,15 @@ class _HomePageState extends State<HomePage> {
               );
             },
             child: KeyedSubtree(
-              key: ValueKey<int>(activeIndex),
-              child: _pages[activeIndex],
+              key: ValueKey<int>(state.activeIndex),
+              child: pages[state.activeIndex],
             ),
           ),
           floatingActionButton:
-              activeIndex == 2
+              state.activeIndex == 2
                   ? FloatingActionButton(
-                    onPressed: () => _showAddWishDialog(context),
+                    onPressed:
+                        () => _showAddWishDialog(context, state.activeIndex),
                     shape: CircleBorder(),
                     backgroundColor: Color(0xFFFB6938),
                     child: Icon(Icons.add, color: Colors.white),
@@ -569,8 +349,64 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Add this method to the _HomePageState class
-  void _showAddWishDialog(BuildContext context) {
+  Widget _buildFriendsPage(BuildContext context, HomeState state) {
+    final friends = state.friends;
+
+    return ListView.builder(
+      itemCount: friends.isEmpty ? 1 : friends.length,
+      itemBuilder: (context, index) {
+        if (friends.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(height: 100),
+                Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No friends yet', style: TextStyle(fontSize: 18)),
+                SizedBox(height: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFFB6938),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => _showAddFriendDialog(context),
+                  child: Text('Add Friend'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final friend = friends[index];
+        return FriendWidget(friend: friend);
+      },
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    int index,
+  ) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+        foregroundColor: Colors.grey,
+        backgroundColor: Colors.white,
+      ),
+      onPressed: () {
+        context.read<HomeCubit>().changeTab(index);
+        Navigator.pop(context);
+      },
+      child: ListTile(leading: Icon(icon), title: Text(title)),
+    );
+  }
+
+  void _showAddWishDialog(BuildContext context, int activeIndex) {
     final TextEditingController nameController = TextEditingController();
     final TextEditingController priceController = TextEditingController();
 
@@ -582,9 +418,7 @@ class _HomePageState extends State<HomePage> {
           priceController: priceController,
           activeIndex: activeIndex,
           onIndexChanged: (index) {
-            setState(() {
-              activeIndex = index;
-            });
+            context.read<HomeCubit>().changeTab(index);
           },
         );
       },
@@ -600,7 +434,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showAddEventDialog(BuildContext context) {
+  void _showAddEventDialog(BuildContext context, int activeIndex) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -609,3 +443,43 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+
+// CircleNavBar(
+//             activeIndex: state.activeIndex,
+//             activeIcons: const [
+//               Icon(Icons.home, color: Colors.white),
+//               Icon(Icons.event, color: Colors.white),
+//               Icon(Icons.card_giftcard, color: Colors.white),
+//               Icon(Icons.local_florist_rounded, color: Colors.white),
+//               Icon(Icons.person, color: Colors.white),
+//             ],
+//             inactiveIcons: const [
+//               Icon(Icons.home, color: Colors.white),
+//               Icon(Icons.event, color: Colors.white),
+//               Icon(Icons.card_giftcard, color: Colors.white),
+//               Icon(Icons.local_florist_rounded, color: Colors.white),
+//               Icon(Icons.person, color: Colors.white),
+//             ],
+//             color: Colors.white,
+//             circleColor: Colors.white,
+//             circleWidth: 75,
+//             onTap: (index) {
+//               context.read<HomeCubit>().changeTab(index);
+//             },
+//             iconDurationMillSec: 0,
+//             tabCurve: Curves.linear,
+//             shadowColor: Colors.grey,
+//             circleShadowColor: Colors.grey,
+//             elevation: 10,
+//             gradient: LinearGradient(
+//               begin: Alignment.topRight,
+//               end: Alignment.bottomLeft,
+//               colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
+//             ),
+//             circleGradient: LinearGradient(
+//               begin: Alignment.topRight,
+//               end: Alignment.bottomLeft,
+//               colors: [Color(0xFFFFAB5D), Color(0xFFFB6938)],
+//             ),
+//           ),
