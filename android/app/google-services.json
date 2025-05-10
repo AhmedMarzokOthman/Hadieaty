@@ -12,7 +12,20 @@
           "package_name": "com.example.hadieaty"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "784150802180-jrvue0tjfm0htt2lnvi07i2blhmmqjso.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.hadieaty",
+            "certificate_hash": "ba1e2d672e058d57ddadb6bf05af4fc5e99f8332"
+          }
+        },
+        {
+          "client_id": "784150802180-uqan56439v9l5u96upri6d1krlp540ff.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB599tG4TARmK5XX0qKuIH4RvaJJL6uF50"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "784150802180-uqan56439v9l5u96upri6d1krlp540ff.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "784150802180-enp7pcmc741ib6m5vr8eqv5skgc501ti.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hadieaty"
+              }
+            }
+          ]
         }
       }
     }

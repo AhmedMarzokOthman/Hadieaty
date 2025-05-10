@@ -22,7 +22,8 @@ class WishModelAdapter extends TypeAdapter<WishModel> {
       image: fields[2] as String?,
       price: fields[3] as String,
       pledgedBy: (fields[4] as Map?)?.cast<String, dynamic>(),
-    )..associatedEvent = fields[5] as String?;
+      associatedEvent: fields[5] as String?,
+    );
   }
 
   @override
